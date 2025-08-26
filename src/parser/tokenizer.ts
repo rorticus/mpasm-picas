@@ -150,6 +150,11 @@ export class Tokenizer {
         isChip = false;
       }
 
+      // does this match a hex number?
+      if (/^0x[0-9a-f]+$/i.test(value)) {
+        isChip = false;
+      }
+
       return {
         type: isChip ? "chip-number" : "number",
         value,

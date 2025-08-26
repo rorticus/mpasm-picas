@@ -1,4 +1,4 @@
-import { findMneumonic, parseOperand } from "../utils/ast";
+import { findMneumonic, isASTNode, parseOperand } from "../utils/ast";
 import { FileTransformer, TransformerContext } from "./types";
 
 /**
@@ -13,7 +13,10 @@ import { FileTransformer, TransformerContext } from "./types";
  * UDATA LABEL, class=UDATA
  *
  */
-export const fixPSECTs: FileTransformer<TransformerContext> = async (file) => {
+export const fixPSECTs: FileTransformer<TransformerContext> = async (
+  file,
+  { psectOrigins }
+) => {
   if (file.program) {
     const udatas = findMneumonic(file.program, "udata");
 
@@ -36,13 +39,45 @@ export const fixPSECTs: FileTransformer<TransformerContext> = async (file) => {
         codeName = file.name.split(".")[0].toUpperCase() + "_CODE";
       }
 
-      code.label = "";
-      code.mneumonic = "PSECT";
-      code.operands = [
-        parseOperand(codeName),
-        parseOperand("class=CODE"),
-        parseOperand("delta=2"),
-      ];
+      const location = code?.operands?.[0];
+
+      if (isASTNode(location, "number")) {
+        // this code section needs a little more love because its absolutely positioned
+        const lineIndex =
+          file.program?.lines.findIndex((l) => l === code) ?? -1;
+        if (lineIndex >= 0) {
+          file.program!.lines.splice(
+            lineIndex,
+            2,
+            {
+              type: "program",
+              label: codeName,
+              mneumonic: "PSECT",
+              operands: [
+                parseOperand(codeName),
+                parseOperand("class=CODE"),
+                parseOperand("delta=2"),
+                parseOperand("abs"),
+              ],
+              comment: "",
+            },
+            {
+              type: "program",
+              mneumonic: "ORG",
+              operands: [location],
+              comment: "",
+            }
+          );
+        }
+      } else {
+        code.label = "";
+        code.mneumonic = "PSECT";
+        code.operands = [
+          parseOperand(codeName),
+          parseOperand("class=CODE"),
+          parseOperand("delta=2"),
+        ];
+      }
     });
   }
 };

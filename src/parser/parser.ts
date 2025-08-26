@@ -179,12 +179,15 @@ export class Parser {
       numberValue = parseInt(t.value.slice(2), 2);
     } else if (
       t.value.startsWith("H") ||
+      /^0x[0-9a-f]+$/i.test(t.value) ||
       "123456789ABCDEF".includes(t.value[0].toUpperCase())
     ) {
       // hexadecimal
       radix = 16;
 
-      if (t.value.startsWith("H")) {
+      if (/^0x[0-9a-f]+$/i.test(t.value)) {
+        numberValue = parseInt(t.value.slice(2), 16);
+      } else if (t.value.startsWith("H")) {
         numberValue = parseInt(t.value.slice(2, -1), 16);
       } else {
         numberValue = parseInt(t.value, 16);

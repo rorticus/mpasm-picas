@@ -41,6 +41,7 @@ const args = parseArgs({
 const registerMap = new Map<string, string>();
 const replacementMap = new Map<string, string>();
 const defines = new Map<string, string>();
+const psectOrigins = new Map<string, number>();
 
 async function main() {
   const [inputDir, outputDir] = args.positionals;
@@ -161,6 +162,7 @@ async function main() {
               registerMap,
               filesInProject: fileNames,
               replacementMap,
+              psectOrigins,
             },
             transformer
           )
@@ -211,6 +213,23 @@ async function main() {
     );
   }
 
+  if (psectOrigins.size > 0) {
+    const flags: string[] = [];
+
+    psectOrigins.forEach((value, key) => {
+      flags.push(`-Wl,-p${key}=${value.toString(16).padStart(4, "0")}h`);
+    });
+
+    // this project has code segments at specific memory locations. pic-as doesn't support this anymore, so you have to add these flags manually.
+    inputFiles.createFile({
+      name: "flags.txt",
+      path: ".",
+      content: flags.join(" ") + "\n",
+      id: `${inputDir}/flags.txt`,
+      program: null,
+    });
+  }
+
   // recreate file content
   const unparser = new Unparser({
     commentSymbol: "//",
@@ -232,6 +251,25 @@ async function main() {
       return outputFiles.writeFile(file);
     })
   );
+
+  if (psectOrigins.size > 0) {
+    const flags: string[] = [];
+
+    console.log("\n\n---");
+    console.log(
+      "Warning! This project has fixed location code sections. PIC-AS does not support this."
+    );
+    console.log("The following fixed-location code segments were found:");
+
+    psectOrigins.forEach((value, key) => {
+      const location = `${value.toString(16).padStart(4, "0")}h`;
+      console.log(`- ${key}: ${location}`);
+      flags.push(`-Wl,-p${key}=${location}`);
+    });
+
+    console.log("\n\nUse the following linker flags:\n");
+    console.log(flags.join("\n"));
+  }
 }
 
 main();

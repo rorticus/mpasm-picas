@@ -9,4 +9,5 @@ export type TransformerContext = {
   registerMap?: Map<string, string>;
   replacementMap?: Map<string, string>;
   filesInProject?: string[];
+  psectOrigins?: Map<string, number>;
 };
