@@ -58,6 +58,7 @@ export const fixPSECTs: FileTransformer<TransformerContext> = async (
                 parseOperand("class=CODE"),
                 parseOperand("delta=2"),
                 parseOperand("abs"),
+                parseOperand("ovrld"),
               ],
               comment: "",
             },
