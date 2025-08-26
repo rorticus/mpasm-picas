@@ -94,6 +94,18 @@ describe("Tokenizer Tests", () => {
     });
   });
 
+  it("should parse a hex number that ends with h", () => {
+    const result = tokenize("01eh");
+    expect(result).toEqual([
+      {
+        type: "number",
+        value: "01eh",
+        column: 0,
+        line: 1,
+      },
+    ]);
+  });
+
   describe("identifiers", () => {
     it("should parse a simple identifier", () => {
       const result = tokenize("myIdentifier");
@@ -513,7 +525,7 @@ describe("Tokenizer Tests", () => {
 
     it("parses chip numbers", () => {
       const result = tokenize(
-        "list	p=16f1939	; list directive to define processor",
+        "list	p=16f1939	; list directive to define processor"
       );
 
       expect(result[3]).toEqual({
