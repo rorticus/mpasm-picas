@@ -29,7 +29,11 @@ export const fixPSECTs: FileTransformer<TransformerContext> = async (
 
       udata.label = "";
       udata.mneumonic = "PSECT";
-      udata.operands = [parseOperand(udataName), parseOperand("class=UDATA")];
+      udata.operands = [
+        parseOperand(udataName),
+        parseOperand("class=RAM"),
+        parseOperand("space=1"),
+      ];
     });
 
     const codes = findMneumonic(file.program, "code");
